@@ -1,7 +1,7 @@
 
 import express from 'express';
 import {getLogger} from './logger';
-import ApiRouter from './routing';
+import {ApiRouter, RootRouter} from './routing';
 
 global.info = {};
 const logger = getLogger();
@@ -25,6 +25,8 @@ function startServer(appInstance, databaseInstance, port = 5000) {
   }
   global.info.database = databaseInstance;
 
+  appInstance.use(express.static('public'));
+  appInstance.use('/', RootRouter);
   appInstance.use('/api', ApiRouter);
   appInstance.listen(port);
   logger.log(`Server Started at ${port}`);

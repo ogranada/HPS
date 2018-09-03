@@ -21,7 +21,7 @@ function createHDSLogger(){
       new transports.File({ filename: 'hps.log' })
     ]
   });
-  /* istanbul ignore else */
+  /* istanbul ignore next */
   if(!process.env['TESTING']) {
     _logger.add(new transports.Console());
   }

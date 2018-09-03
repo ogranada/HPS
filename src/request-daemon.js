@@ -37,7 +37,11 @@ function ProcessorPromise(source) {
   });
 }
 
-function startDataAcquisition(dataSources, databaseInstance, seconds=60) {
+function startDataAcquisition(dataSources, databaseInstance, seconds) {
+  /* istanbul ignore next */
+  if(!seconds){
+    seconds = 60;
+  }
   const dataAcquisition = () => {
     const promises = dataSources
       .map(source => ProcessorPromise(source))

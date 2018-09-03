@@ -17,8 +17,15 @@ gulp.task('build-server', () =>
     .pipe(gulp.dest('dist'))
 );
 
+gulp.task('copy-files', () => {
+  gulp.src([
+
+  ])
+    .pipe(gulp.dest('dist'));
+});
+
 gulp.task('watch', () => {
-  gulp.watch('src/**/*.js', gulp.series('build-server'));
+  gulp.watch('src/**/*.js', gulp.parallel('build-server','copy-files'));
 });
 
 gulp.task('develop', gulp.parallel('build-server', 'watch'));

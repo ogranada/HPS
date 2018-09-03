@@ -1,8 +1,9 @@
-import {Router} from 'express';
+import { Router } from 'express';
 import Database from './database';
 import utils from './utils';
 
-const router = Router();
+export const RootRouter = Router();
+export const ApiRouter = Router();
 
 const HTML_TEMPLATE = `<!DOCTYPE html>
 <html lang="en">
@@ -14,16 +15,24 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 </head>
 <body>
   {{body}}
+  <script src="/scripts/main.js"></script>
 </body>
 </html>`;
 
 function render(template, values) {
   return Object.keys(values).reduce((initial, key) =>
-    initial.replace(`{{${key}}}`, values[key])
-  , template);
+    initial.replace(`{{${key}}}`, values[key]), template);
 }
 
-router.get('/status', (req, res) => {
+RootRouter.get('/', (req, res) => {
+  res
+    .status(200).send(render(HTML_TEMPLATE, {
+      title: 'High Performance Stats',
+      body: `<pre>${1}</pre>`
+    }));
+});
+
+ApiRouter.get('/status', (req, res) => {
   const now = new Date();
   const limit = new Date();
   // limit.setHours(limit.getHours() - 1);
@@ -31,7 +40,7 @@ router.get('/status', (req, res) => {
   let data = Database.getInstance().query('status', {})
     .filter(utils.isMoreRecentThan(limit))
     .reduce(utils.groupBySource, {})
-  ;
+    ;
   res.status(200).json({
     now,
     limit,
@@ -39,10 +48,10 @@ router.get('/status', (req, res) => {
   });
 });
 
-router.get('/database', (req, res) => {
+ApiRouter.get('/database', (req, res) => {
   const forceJSON = !!req.query['force_json'];
   let data = Database.getInstance().query('status', {});
-  if(!forceJSON && req.headers.accept && req.headers.accept.includes('text/html')) {
+  if (!forceJSON && req.headers.accept && req.headers.accept.includes('text/html')) {
     data = JSON.stringify(data, null, 2);
     return res
       .status(200).send(render(HTML_TEMPLATE, {
@@ -56,4 +65,4 @@ router.get('/database', (req, res) => {
 });
 
 
-export default router;
+export default ApiRouter;

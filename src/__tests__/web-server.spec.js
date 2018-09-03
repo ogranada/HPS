@@ -1,7 +1,8 @@
 /* global describe test expect beforeAll */
 
 import WebServer from '../web-server';
-import ApiRouter from '../routing';
+// import ApiRouter from '../routing';
+import {ApiRouter, RootRouter} from '../routing';
 
 const request = require('supertest');
 
@@ -28,13 +29,16 @@ describe('Test main web server functionalities', () => {
     const appMock = {
       use(url, router) {
         expect(url).toBeTruthy();
-        expect(router).toBeTruthy();
+        if((typeof url) === 'string') {
+          expect(router).toBeTruthy();
+        }
         useCalled = true;
       },
       listen(port) {
         expect(port).toBeTruthy();
-        if (useCalled)
+        if (useCalled){
           done();
+        }
       }
     };
     WebServer.startServer(appMock, dbMock);
@@ -49,8 +53,15 @@ describe('Test API functionalities', () => {
   beforeAll(() => {
     app = WebServer.getApplication();
     if (app.use) {
+      app.use('/', RootRouter);
       app.use('/api/', ApiRouter);
     }
+  });
+
+  test('It should response the GET method with url /', () => {
+    return request(app).get('/').then(response => {
+      expect(response.statusCode).toBe(200);
+    });
   });
 
   test('It should response the GET method with url /api/status', () => {
