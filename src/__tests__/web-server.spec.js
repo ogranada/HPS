@@ -1,11 +1,9 @@
-/* global describe test expect beforeAll jest */
+/* global describe test expect beforeAll */
 
-import express from 'express';
 import WebServer from '../web-server';
 import ApiRouter from '../routing';
 
 const request = require('supertest');
-
 
 describe('Test main web server functionalities', () => {
 
@@ -61,10 +59,30 @@ describe('Test API functionalities', () => {
     });
   });
 
-  test('It should response the GET method with url /api/satabase with text/html accept.', () => {
+  test('It should response the GET method with url /api/database with text/html accept.', () => {
     return request(app)
       .get('/api/database')
       .set('Accept', 'text/html')
+      .then(response => {
+        expect(response.statusCode).toBe(200);
+      })
+    ;
+  });
+
+  test('It should response the GET method with url /api/database without text/html accept.', () => {
+    return request(app)
+      .get('/api/database')
+      .then(response => {
+        expect(response.statusCode).toBe(200);
+      })
+    ;
+  });
+
+  test('It should response the GET method with url /api/database with text/html accept but forcing to response with a json.', () => {
+    return request(app)
+      .get('/api/database')
+      .set('Accept', 'text/html')
+      .query({force_json: true})
       .then(response => {
         expect(response.statusCode).toBe(200);
       })

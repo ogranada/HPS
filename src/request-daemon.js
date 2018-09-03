@@ -1,44 +1,31 @@
 
 import axios from 'axios';
-import {parseString} from 'xml2js';
 import {getLogger} from './logger';
+import utils from './utils';
 
 const logger = getLogger();
 
-function getParserByName(name) {
-  return (data) => new Promise((resolve, reject) => {
-    if ((typeof data) === 'object') {
-      return resolve(data);
-    }
-    if (name.toLowerCase() === 'xml') {
-      parseString(data, function (err, result) {
-        err && reject(err);
-        return resolve(result);
-      });
-    } else {
-      try {
-        resolve(JSON.parse(data));
-      } catch (error) {
-        reject(error);
-      }
-    }
-  });
-}
-
 function ProcessorPromise(source) {
-  const parse = getParserByName(source.parser);
-  return new Promise((resolve, reject) => {
+  const parse = utils.getParserByName(source.parser);
+  return new Promise((resolve /*,reject */) => {
     axios.get(source.url)
       .then((answer) => {
         const result = answer.data;
         return parse(result);
       })
-      .then((result) => {
+      .then((partial_result) => {
+        let result;
         if(source.parseStatus) {
-          resolve(source.parseStatus(result));
+          result = source.parseStatus(partial_result);
         } else {
-          resolve(result);
+          result = partial_result;
         }
+        return Promise.resolve(result);
+      })
+      .then((result) => {
+        result.source = source.url;
+        result.date = (new Date()).toISOString();
+        resolve(result);
       })
       .catch(error => {
         resolve({
@@ -50,23 +37,24 @@ function ProcessorPromise(source) {
   });
 }
 
-function startDataAcquisition(dataSources, databaseInstance) {
+function startDataAcquisition(dataSources, databaseInstance, seconds=60) {
   const dataAcquisition = () => {
     const promises = dataSources
       .map(source => ProcessorPromise(source))
-      ;
+    ;
     Promise.all(promises)
       .then(responses => {
         responses.forEach(response => {
-          response.date = (new Date()).toISOString();
           databaseInstance.insert('status', response);
         });
+        logger.log('Data added...');
       });
   };
-  dataAcquisition();
-  setInterval(dataAcquisition, 60 * 1000);
+  // dataAcquisition();
+  return setInterval(dataAcquisition, seconds * 1000);
 }
 
 export default {
+  ProcessorPromise,
   startDataAcquisition
 };

@@ -27,7 +27,7 @@ function startServer(appInstance, databaseInstance, port = 5000) {
 
   appInstance.use('/api', ApiRouter);
   appInstance.listen(port);
-  logger.log('Server Started');
+  logger.log(`Server Started at ${port}`);
 }
 
 export default {

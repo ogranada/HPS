@@ -1,10 +1,32 @@
 
+import fs from 'fs';
+import {getLogger} from './logger';
+
 global.__db_instance = null;
+const logger = getLogger();
 
 class Database {
 
-  constructor() {
+  constructor(storage_path) {
+    logger.log(`Using ${storage_path} to store information.`);
+    this.storage_path = storage_path;
     this.collections = {};
+    process.once('SIGINT', this.save);
+    this.load();
+  }
+
+  save() {
+    /* istanbul ignore else */
+    if(this.storage_path) {
+      fs.writeFileSync(this.storage_path, JSON.stringify(this.collections, null, 2));
+    }
+  }
+
+  load() {
+    /* istanbul ignore else */
+    if(fs.existsSync(this.storage_path)){
+      this.collections = JSON.parse(fs.readFileSync(this.storage_path));
+    }
   }
 
   getCollection(collectionName) {
@@ -34,6 +56,7 @@ class Database {
 
   insert(collectionName, newData) {
     this.getCollection(collectionName).push(newData);
+    this.save();
     return this;
   }
 
@@ -47,9 +70,9 @@ class Database {
 
 }
 
-function getInstance() {
+function getInstance(storage_path) {
   if (!global.__db_instance) {
-    global.__db_instance = new Database();
+    global.__db_instance = new Database(storage_path);
   }
   return global.__db_instance;
 }

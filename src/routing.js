@@ -1,9 +1,8 @@
 import {Router} from 'express';
 import Database from './database';
-import { template } from 'handlebars';
+import utils from './utils';
 
 const router = Router();
-const database = Database.getInstance();
 
 const HTML_TEMPLATE = `<!DOCTYPE html>
 <html lang="en">
@@ -25,21 +24,35 @@ function render(template, values) {
 }
 
 router.get('/status', (req, res) => {
-  res.status(200).json({});
+  const now = new Date();
+  const limit = new Date();
+  // limit.setHours(limit.getHours() - 1);
+  limit.setMinutes(limit.getMinutes() - 10);
+  let data = Database.getInstance().query('status', {})
+    .filter(utils.isMoreRecentThan(limit))
+    .reduce(utils.groupBySource, {})
+  ;
+  res.status(200).json({
+    now,
+    limit,
+    data,
+  });
 });
 
 router.get('/database', (req, res) => {
-  let data = database.query('status', {});
-  if(req.headers.accept && req.headers.accept.includes('text/html')) {
+  const forceJSON = !!req.query['force_json'];
+  let data = Database.getInstance().query('status', {});
+  if(!forceJSON && req.headers.accept && req.headers.accept.includes('text/html')) {
     data = JSON.stringify(data, null, 2);
     return res
       .status(200).send(render(HTML_TEMPLATE, {
         title: 'Database Values',
         body: `<pre>${data}</pre>`
       }));
+  } else {
+    res.status(200)
+      .json(data);
   }
-  res.status(200)
-    .json(data);
 });
 
 
