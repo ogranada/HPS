@@ -22,7 +22,7 @@ async function getInfoFromAPI() {
   return await axios.get('/api/status');
 }
 
-const prepareChart = (id, title) => `<div style="text-align:center;">
+const prepareChart = (id, title) => `<div style="text-align:center;margin-top:2.5em;">
 <h2>${title}</h2>
 <div id="cnt-${id}" style="width:300px;height:300px;margin-left:50%;transform:translateX(-50%);">
 <canvas id="chart-${id}" width="100" height="100"></canvas>
