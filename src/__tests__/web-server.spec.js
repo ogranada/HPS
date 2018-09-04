@@ -1,7 +1,8 @@
 /* global describe test expect beforeAll */
 
+import {join} from 'path';
 import WebServer from '../web-server';
-// import ApiRouter from '../routing';
+import nunjucks from 'nunjucks';
 import {ApiRouter, RootRouter} from '../routing';
 
 const request = require('supertest');
@@ -27,6 +28,7 @@ describe('Test main web server functionalities', () => {
     const dbMock = {};
     let useCalled = false;
     const appMock = {
+      set(){},
       use(url, router) {
         expect(url).toBeTruthy();
         if((typeof url) === 'string') {
@@ -52,6 +54,11 @@ describe('Test API functionalities', () => {
 
   beforeAll(() => {
     app = WebServer.getApplication();
+    nunjucks.configure(join(__dirname, '../views'), {
+      autoescape: true,
+      express: app,
+      watch: true
+    });
     if (app.use) {
       app.use('/', RootRouter);
       app.use('/api/', ApiRouter);

@@ -1,4 +1,5 @@
 
+import {resolve} from 'path';
 import WebServer from './web-server';
 import Database from './database';
 import RequestDaemon from './request-daemon';
@@ -6,8 +7,8 @@ import RequestDaemon from './request-daemon';
 /* istanbul ignore next */
 function main() {
   process.title = 'hps-app';
-
-  const databaseInstance = Database.getInstance('/tmp/ads_services.json');
+  const fileTarget = process.env['DB_FILE'] || resolve('.ads_services.json');
+  const databaseInstance = Database.getInstance(fileTarget);
 
   RequestDaemon.startDataAcquisition([
     {

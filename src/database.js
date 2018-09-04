@@ -1,6 +1,6 @@
 
 import fs from 'fs';
-import {getLogger} from './logger';
+import { getLogger } from './logger';
 
 global.__db_instance = null;
 const logger = getLogger();
@@ -8,24 +8,31 @@ const logger = getLogger();
 class Database {
 
   constructor(storage_path) {
-    logger.log(`Using ${storage_path} to store information.`);
     this.storage_path = storage_path;
     this.collections = {};
     process.once('SIGINT', this.save);
-    this.load();
+    if (this.storage_path) {
+      logger.log(`Using ${this.storage_path} to store information.`);
+      this.load();
+    }
   }
-
+  
   save() {
     /* istanbul ignore else */
-    if(this.storage_path) {
+    if (this.storage_path) {
       fs.writeFileSync(this.storage_path, JSON.stringify(this.collections, null, 2));
     }
   }
 
   load() {
     /* istanbul ignore else */
-    if(fs.existsSync(this.storage_path)){
-      this.collections = JSON.parse(fs.readFileSync(this.storage_path));
+    if (fs.existsSync(this.storage_path)) {
+      const data_loaded = fs.readFileSync(this.storage_path).toString();
+      this.collections = JSON.parse(data_loaded);
+      logger.log('Collections loaded:');
+      Object.keys(this.collections).forEach((c) => {
+        logger.log(`   · ${c}`);
+      });
     }
   }
 
@@ -51,7 +58,7 @@ class Database {
     return this.getCollection(collectionName)
       .filter(this.validElement(filter))
       .map(element => Object.assign({}, element)) // to avoid modify original information
-    ;
+      ;
   }
 
   insert(collectionName, newData) {
@@ -65,7 +72,7 @@ class Database {
       .filter(this.validElement(filter))
       .map(element => Object.assign(element, newData))
       .map(element => Object.assign({}, element)) // to avoid modify original information
-    ;
+      ;
   }
 
 }

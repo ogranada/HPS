@@ -1,5 +1,6 @@
 
 import express from 'express';
+import nunjucks from 'nunjucks';
 import {getLogger} from './logger';
 import {ApiRouter, RootRouter} from './routing';
 
@@ -28,6 +29,13 @@ function startServer(appInstance, databaseInstance, port = 5000) {
   appInstance.use(express.static('public'));
   appInstance.use('/', RootRouter);
   appInstance.use('/api', ApiRouter);
+
+  nunjucks.configure('views', {
+    autoescape: true,
+    express: appInstance,
+    watch: true
+  });
+
   appInstance.listen(port);
   logger.log(`Server Started at ${port}`);
 }

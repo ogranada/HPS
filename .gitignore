@@ -5,3 +5,4 @@ node_modules
 *.vsix
 *hps.log
 .vscode
+.ads_services.json
